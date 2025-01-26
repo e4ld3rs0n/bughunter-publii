@@ -3,12 +3,43 @@
     <title>bughunter.me</title>
     <link href="https://e4ld3rs0n.github.io/bughunter-publii/feed.xml" rel="self" />
     <link href="https://e4ld3rs0n.github.io/bughunter-publii" />
-    <updated>2025-01-26T18:12:13+01:00</updated>
+    <updated>2025-01-26T19:15:06+01:00</updated>
     <author>
         <name>andrey</name>
     </author>
     <id>https://e4ld3rs0n.github.io/bughunter-publii</id>
 
+    <entry>
+        <title>Moving Away from WordPress</title>
+        <author>
+            <name>andrey</name>
+        </author>
+        <link href="https://e4ld3rs0n.github.io/bughunter-publii/moving-away-from-wordpress-2/"/>
+        <id>https://e4ld3rs0n.github.io/bughunter-publii/moving-away-from-wordpress-2/</id>
+            <category term="blog"/>
+
+        <updated>2025-01-26T19:14:31+01:00</updated>
+            <summary>
+                <![CDATA[
+                    The story starts about a year ago when, a bit curious and a bit bored, I decided to explore the world of static site generators&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                <p>The story starts about a year ago when, a bit curious and a bit bored, I decided to explore the world of static site generators like Hugo, Jekyll, and others. My blog had been running on WordPress for quite some time, but I was getting frustrated with the complexity and constant maintenance that came with it.</p><h3 id="i-just-need-a-space-to-write">I Just Need a Space to Write</h3>
+<p>Don’t get me wrong—WordPress is a fantastic platform for many use cases. Whether you’re running a massive e-commerce site or a corporate blog, WordPress offers the tools, flexibility, and plugin support to build something powerful and feature-rich.</p><p>However, when it comes to something as simple as a personal blog, the maintenance costs quickly become too high. You’re constantly updating plugins, patching security vulnerabilities, dealing with plugin conflicts, and managing backups and databases. As my site grew, so did the time I needed to spend on all these issues.</p><p>For a blog like mine, this complexity just didn’t make sense anymore. It started feeling like I was driving a high-performance sports car to pick up groceries—way more than I needed.</p><h3 id="enter-publii">Enter Publii</h3>
+<p>That’s when I discovered Publii. In simple terms, Publii is a desktop app that generates static websites. What sets it apart is that it combines the simplicity and speed of static sites with an easy-to-use interface for managing content. There’s no need for a complex server setup or worrying about databases—just write your content, and Publii handles the rest.</p><p>It also supports direct publishing to several platforms, including GitHub Pages, making deployment easy and seamless. This integration means you don’t need to worry about manually uploading files or configuring servers—just a few clicks, and your site is live.</p><p>The migration process from WordPress was seamless: export your .WXR file, import it into Publii, and you’re done.</p><h3 id="the-writing-experience">The writing experience</h3>
+<p>Publii gives you multiple ways to write content, depending on your style.</p><ul>
+<li><p><strong>Markdown</strong>: Fast and simple. Perfect for straightforward posts like this one.</p></li>
+<li><p><strong>WYSIWYG</strong>: Ideal for more polished content where design matters, showing exactly how the post will look as you write.</p></li>
+<li><p><strong>Block Editor</strong>: A more structured approach if you prefer building content visually, though it’s not my personal choice.</p></li>
+</ul>
+<p>For most of my posts, Markdown is my go-to, but for more complex layouts, I switch to the WYSIWYG editor. The block editor is there if you need it.</p><h3 id="a-secure-solution">A Secure Solution</h3>
+<p>Like other static site generators, Publii is pretty secure, too. Since it generates static sites, there’s no database or backend code running, which means there’s nothing for attackers to exploit. Without the complexity of dynamic content or server-side processes, the attack surface is drastically reduced.</p><h3 id="the-perfect-fit">The Perfect Fit</h3>
+<p>To me, this is a perfect fit. It takes away the complexity without sacrificing flexibility, and so far, it’s been a game-changer for my workflow.</p>
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>TryHackMe: Wgel write-up</title>
         <author>
@@ -935,96 +966,6 @@ This page can only be seen internally (localhost:5000)</code></pre>
   <p>
     
   </p>
-            ]]>
-        </content>
-    </entry>
-    <entry>
-        <title>TryHackMe: MD2PDF write-up</title>
-        <author>
-            <name>andrey</name>
-        </author>
-        <link href="https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-md2pdf-write-up-3/"/>
-        <id>https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-md2pdf-write-up-3/</id>
-        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/tryhackme-banner.jpg" medium="image" />
-            <category term="tryhackme"/>
-            <category term="ctf"/>
-
-        <updated>2023-02-16T16:45:00+01:00</updated>
-            <summary>
-                <![CDATA[
-                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/tryhackme-banner.jpg" alt="" />
-                    In this article we are going to explore the solution to TryHackMe's MD2PDF and exploit a Markdown converter. Link: https://tryhackme.com/room/md2pdf Difficulty: Easy To begin the&hellip;
-                ]]>
-            </summary>
-        <content type="html">
-            <![CDATA[
-                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/tryhackme-banner.jpg" class="type:primaryImage" alt="" /></p>
-                <p><!-- wp:paragraph --></p>
-<p>In this article we are going to explore the solution to TryHackMe's MD2PDF and exploit a Markdown converter.</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p>Link: <a href="https://tryhackme.com/room/md2pdf" target="_blank" rel="noopener" title="">https://tryhackme.com/room/md2pdf</a></p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p>Difficulty: <code>Easy</code></p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:heading --></p>
-<h2 class="wp-block-heading">Enumeration</h2>
-<p><!-- /wp:heading --></p>
-<p><!-- wp:paragraph --></p>
-<p>To begin the enumeration process, I launched an Nmap scan, which revealed that the target machine is running three services: a standard HTTP server on port 80, an SSH server, and another HTTP server on port 5000. Additionally, the machine appears to be running some version of Ubuntu Server.</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p>Next, I performed a Gobuster scan against both web servers, which revealed a hidden directory named "/admin" for both web services, piquing my interest.</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p>Moving forward, I decided to explore the web applications presented to me. Both looked very similar, featuring a text box where Markdown could be entered, and a button to convert the Markdown to a PDF document.</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p>I tried the application running on port 80 and was able to successfully generate a PDF containing my entered Markdown. However, the other application seemed to be malfunctioning as clicking the Convert button did not produce any output.</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:paragraph --></p>
-<p>For the time being, I focused on the application running on port 80. My next course of action was to enter some HTML into the textbox to determine whether or not it would render. As expected, the HTML was rendered successfully:</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:image {"id":150,"sizeSlug":"full","linkDestination":"none"} --></p>
-<figure class="wp-block-image size-full"><figure class="wp-image-150"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/tryhackme-md2pdf-1.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-1-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-1-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-1-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-1-lg.png 1024w"></figure></figure>
-<p><!-- /wp:image --></p>
-<p><!-- wp:image {"id":151,"sizeSlug":"full","linkDestination":"none"} --></p>
-<figure class="wp-block-image size-full"><figure class="wp-image-151"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/tryhackme-md2pdf-2.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-2-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-2-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-2-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-2-lg.png 1024w"></figure></figure>
-<p><!-- /wp:image --></p>
-<p><!-- wp:paragraph --></p>
-<p>The /admin directory for both applications displayed a "Forbidden" error:</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:enlighter/codeblock --></p>
-<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">ForbiddenThis page can only be seen internally (localhost:5000)</pre>
-<p><!-- /wp:enlighter/codeblock --></p>
-<p><!-- wp:heading --></p>
-<h2 class="wp-block-heading">Exploit</h2>
-<p><!-- /wp:heading --></p>
-<p><!-- wp:paragraph --></p>
-<p>Since we already knew that the PDF document could render HTML, I had an idea to try and get a sneak peek of what the /admin directory looks like. I thought maybe embedding it into an iframe could do the trick:</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:enlighter/codeblock --></p>
-<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">&lt;iframe src="http://localhost/admin" width="800" height="800"&gt;&lt;/iframe&gt;</pre>
-<p><!-- /wp:enlighter/codeblock --></p>
-<p><!-- wp:paragraph --></p>
-<p>That did not work however:</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:image {"id":153,"sizeSlug":"full","linkDestination":"none"} --></p>
-<figure class="wp-block-image size-full"><figure class="wp-image-153"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/tryhackme-md2pdf-3.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-3-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-3-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-3-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-3-lg.png 1024w"></figure></figure>
-<p><!-- /wp:image --></p>
-<p><!-- wp:paragraph --></p>
-<p>Hm, that did not work. Maybe we can view the /admin directory on the other port?</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:enlighter/codeblock --></p>
-<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">&lt;iframe src="http://localhost:5000/admin" width="800" height="800"&gt;&lt;/iframe&gt;</pre>
-<p><!-- /wp:enlighter/codeblock --></p>
-<p><!-- wp:paragraph --></p>
-<p>That does the trick and we are rewarded with the flag:</p>
-<p><!-- /wp:paragraph --></p>
-<p><!-- wp:image {"id":154,"sizeSlug":"full","linkDestination":"none"} --></p>
-<figure class="wp-block-image size-full"><figure class="wp-image-154"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/tryhackme-md2pdf-4.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-4-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-4-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-4-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-4-lg.png 1024w"></figure></figure>
-<p><!-- /wp:image --></p>
             ]]>
         </content>
     </entry>
