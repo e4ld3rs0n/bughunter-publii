@@ -5,10 +5,6 @@
 <loc>https://e4ld3rs0n.github.io/bughunter-publii/</loc>
 </url>
 <url>
-<loc>https://e4ld3rs0n.github.io/bughunter-publii/about-me/</loc>
-<lastmod>2025-01-26T17:59:13+01:00</lastmod>
-</url>
-<url>
 <loc>https://e4ld3rs0n.github.io/bughunter-publii/hackthebox-busqueda-write-up/</loc>
 <lastmod>2025-01-27T20:30:36+01:00</lastmod>
 <image:image>
@@ -162,5 +158,9 @@
 <image:loc>https://e4ld3rs0n.github.io/bughunter-publii/media/posts/28/what-am-i-running-in-my-homelab.png</image:loc>
 <image:title><![CDATA[]]></image:title>
 </image:image>
+</url>
+<url>
+<loc>https://e4ld3rs0n.github.io/bughunter-publii/whoami/</loc>
+<lastmod>2025-01-28T00:49:23+01:00</lastmod>
 </url>
 </urlset>
