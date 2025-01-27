@@ -3,7 +3,7 @@
     <title>bughunter.me</title>
     <link href="https://e4ld3rs0n.github.io/bughunter-publii/feed.xml" rel="self" />
     <link href="https://e4ld3rs0n.github.io/bughunter-publii" />
-    <updated>2025-01-27T00:17:40+01:00</updated>
+    <updated>2025-01-27T20:32:47+01:00</updated>
     <author>
         <name>andrey</name>
     </author>
@@ -16,16 +16,19 @@
         </author>
         <link href="https://e4ld3rs0n.github.io/bughunter-publii/whats-running-in-my-homelab/"/>
         <id>https://e4ld3rs0n.github.io/bughunter-publii/whats-running-in-my-homelab/</id>
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/28/what-am-i-running-in-my-homelab.png" medium="image" />
             <category term="homelab"/>
 
         <updated>2025-01-27T00:07:43+01:00</updated>
             <summary>
                 <![CDATA[
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/28/what-am-i-running-in-my-homelab.png" alt="" />
                     I started my homelab journey years ago with a single second-hand HP ProLiant N40L server that I bought on eBay, experimenting with basic setups and&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/28/what-am-i-running-in-my-homelab.png" class="type:primaryImage" alt="" /></p>
                 <p>I started my homelab journey years ago with a single second-hand HP ProLiant N40L server that I bought on eBay, experimenting with basic setups and learning as I went. Over time, I’ve focused on self-hosting more and relying less on public services, gradually expanding my hardware and running more ambitious projects.</p><p>In this post, I’ll highlight the most-used services in my homelab. These are the ones my friends, family, and I rely on the most or find the most valuable, in no particular order. In future posts, I’ll cover my setup in more detail, from the foundation to the applications I use.</p><h3 id="1-nextcloud">1. Nextcloud</h3>
 <p>This one is pretty obvious—<a href="https://github.com/nextcloud">Nextcloud</a> is the de facto standard self-hosted cloud platform for homelab owners. It offers a versatile solution for file storage, syncing, and sharing, along with a wide range of additional features. Its flexibility and strong community support make it an essential choice for anyone looking to take control of their data.</p><p>Nextcloud handles a lot for me: it serves as my default cloud file storage and sharing platform, acts as a backend for contacts and calendars, manages my project planning, functions as a collaborative to-do manager, includes a powerful office suite, it’s integrated with my favourite diagram drawing application, and features an excellent photo gallery. I also rely on it for instant messaging and videoconferencing, use it extensively for markdown notes (coupled with Obsidian), and even allow others to schedule appointments with me through it. All of this is easily accessible to me whether I’m at home, traveling, using someone else’s computer, or on my smartphone—you get the idea.</p><h3 id="2-vaultwarden">2. Vaultwarden</h3>
 <p><a href="https://github.com/dani-garcia/vaultwarden">Vaultwarden</a> is an unofficial Bitwarden server implementation written in Rust. It’s incredibly lightweight, resource-efficient, and simple to deploy. Vaultwarden offers most of the functionality of the official Bitwarden service, enabling you to securely store and manage passwords, login credentials, and other sensitive information, all while giving you full control over your data—without the need for licensing or dealing with .NET/Mono shenanigans.</p><h3 id="3-zipline">3. Zipline</h3>
@@ -47,16 +50,19 @@
         </author>
         <link href="https://e4ld3rs0n.github.io/bughunter-publii/moving-away-from-wordpress-2/"/>
         <id>https://e4ld3rs0n.github.io/bughunter-publii/moving-away-from-wordpress-2/</id>
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/26/moving-away-from-wordpress.png" medium="image" />
             <category term="blog"/>
 
         <updated>2025-01-26T19:14:31+01:00</updated>
             <summary>
                 <![CDATA[
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/26/moving-away-from-wordpress.png" alt="" />
                     The story starts about a year ago when, a bit curious and a bit bored, I decided to explore the world of static site generators&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/26/moving-away-from-wordpress.png" class="type:primaryImage" alt="" /></p>
                 <p>The story starts about a year ago when, a bit curious and a bit bored, I decided to explore the world of static site generators like Hugo, Jekyll, and others. My blog had been running on WordPress for quite some time, but I was getting frustrated with the complexity and constant maintenance that came with it.</p><h3 id="i-just-need-a-space-to-write">I Just Need a Space to Write</h3>
 <p>Don’t get me wrong—WordPress is a fantastic platform for many use cases. Whether you’re running a massive e-commerce site or a corporate blog, WordPress offers the tools, flexibility, and plugin support to build something powerful and feature-rich.</p><p>However, when it comes to something as simple as a personal blog, the maintenance costs quickly become too high. You’re constantly updating plugins, patching security vulnerabilities, dealing with plugin conflicts, and managing backups and databases. As my site grew, so did the time I needed to spend on all these issues.</p><p>For a blog like mine, this complexity just didn’t make sense anymore. It started feeling like I was driving a high-performance sports car to pick up groceries—way more than I needed.</p><h3 id="enter-publii">Enter Publii</h3>
 <p>That’s when I discovered <a href="https://getpublii.com/">Publii</a>. In simple terms, Publii is a desktop app that generates static websites. What sets it apart is that it combines the simplicity and speed of static sites with an easy-to-use interface for managing content. There’s no need for a complex server setup or worrying about databases—just write your content, and Publii handles the rest.</p><p>It also supports direct publishing to several platforms, including GitHub Pages, making deployment easy and seamless. This integration means you don’t need to worry about manually uploading files or configuring servers—just a few clicks, and your site is live.</p><p>The migration process from WordPress was seamless: export your .WXR file, import it into Publii, and you’re done.</p><h3 id="the-writing-experience">The writing experience</h3>
@@ -78,20 +84,20 @@
         </author>
         <link href="https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-wgel-write-up/"/>
         <id>https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-wgel-write-up/</id>
-        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/20/Wgel-Banner-jpg.webp" medium="image" />
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/20/wgel-walkthrough.png" medium="image" />
             <category term="tryhackme"/>
             <category term="ctf"/>
 
         <updated>2024-02-11T22:46:55+01:00</updated>
             <summary>
                 <![CDATA[
-                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/20/Wgel-Banner-jpg.webp" alt="" />
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/20/wgel-walkthrough.png" alt="" />
                     In this article we'll tackle an easy CTF on TryHackMe. We'll enumerate a Linux box, find misplaced credentials and exploit a common Linux tool to&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
-                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/20/Wgel-Banner-jpg.webp" class="type:primaryImage" alt="" /></p>
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/20/wgel-walkthrough.png" class="type:primaryImage" alt="" /></p>
                 <p><!-- wp:paragraph --></p>
 <p>In this article we'll tackle an easy CTF on TryHackMe. We'll enumerate a Linux box, find misplaced credentials and exploit a common Linux tool to escalate our privileges and exfiltrate information.</p>
 <p><!-- /wp:paragraph --></p>
@@ -174,20 +180,20 @@
         </author>
         <link href="https://e4ld3rs0n.github.io/bughunter-publii/hackthebox-inject-write-up/"/>
         <id>https://e4ld3rs0n.github.io/bughunter-publii/hackthebox-inject-write-up/</id>
-        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/Inject.png" medium="image" />
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/inject-walkthrough.png" medium="image" />
             <category term="hackthebox"/>
             <category term="ctf"/>
 
         <updated>2023-05-29T20:01:47+02:00</updated>
             <summary>
                 <![CDATA[
-                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/Inject.png" alt="" />
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/inject-walkthrough.png" alt="" />
                     In this post we'll take a look at the solution to the Inject challenge on HackTheBox. The solution involves abusing an LFI vulnerability and exploiting&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
-                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/Inject.png" class="type:primaryImage" alt="" /></p>
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/17/inject-walkthrough.png" class="type:primaryImage" alt="" /></p>
                 <p><!-- wp:paragraph --></p>
 <p>In this post we'll take a look at the solution to the Inject challenge on HackTheBox. The solution involves abusing an LFI vulnerability and exploiting a misconfigured service to obtain root privileges. The difficulty for this challenge is <code>Easy</code>.</p>
 <p><!-- /wp:paragraph --></p>
@@ -288,20 +294,20 @@
         </author>
         <link href="https://e4ld3rs0n.github.io/bughunter-publii/hackthebox-monitorstwo-write-up/"/>
         <id>https://e4ld3rs0n.github.io/bughunter-publii/hackthebox-monitorstwo-write-up/</id>
-        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/MonitorsTwo.png" medium="image" />
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/monitors-two-walkthrough.png" medium="image" />
             <category term="hackthebox"/>
             <category term="ctf"/>
 
         <updated>2023-05-11T11:52:03+02:00</updated>
             <summary>
                 <![CDATA[
-                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/MonitorsTwo.png" alt="" />
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/monitors-two-walkthrough.png" alt="" />
                     In this article we'll crack the MonitorsTwo machine on HackTheBox. The solution involves exploiting an outdated version of Cacti (a server monitoring software), accessing a&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
-                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/MonitorsTwo.png" class="type:primaryImage" alt="" /></p>
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/16/monitors-two-walkthrough.png" class="type:primaryImage" alt="" /></p>
                 <p><!-- wp:paragraph --></p>
 <p>In this article we'll crack the MonitorsTwo machine on HackTheBox. The solution involves exploiting an outdated version of Cacti (a server monitoring software), accessing a poorly protected MySQL database, cracking password hashes and abusing Docker permissions. This challenge is rated as <code>easy</code> on HackTheBox.</p>
 <p><!-- /wp:paragraph --></p>
@@ -426,20 +432,20 @@
         </author>
         <link href="https://e4ld3rs0n.github.io/bughunter-publii/hackthebox-busqueda-write-up/"/>
         <id>https://e4ld3rs0n.github.io/bughunter-publii/hackthebox-busqueda-write-up/</id>
-        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/Busqueda.png" medium="image" />
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/busqueda-walkthrough.png" medium="image" />
             <category term="hackthebox"/>
             <category term="ctf"/>
 
         <updated>2023-04-30T21:52:36+02:00</updated>
             <summary>
                 <![CDATA[
-                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/Busqueda.png" alt="" />
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/busqueda-walkthrough.png" alt="" />
                     In this article we'll attempt to solve the Busqueda room from HackTheBox. The solution involves exploiting a Flask website to gain initial access, abusing custom&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
-                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/Busqueda.png" class="type:primaryImage" alt="" /></p>
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/14/busqueda-walkthrough.png" class="type:primaryImage" alt="" /></p>
                 <p><!-- wp:paragraph --></p>
 <p>In this article we'll attempt to solve the Busqueda room from HackTheBox. The solution involves exploiting a Flask website to gain initial access, abusing custom python scripts and taking advantage of password reuse. This challenge is rated as <code>easy</code>.</p>
 <p><!-- /wp:paragraph --></p>
@@ -561,20 +567,20 @@
         </author>
         <link href="https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-internal-write-up/"/>
         <id>https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-internal-write-up/</id>
-        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/9/tryhackme-banner.jpg" medium="image" />
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/9/internal-walkthrough.png" medium="image" />
             <category term="tryhackme"/>
             <category term="ctf"/>
 
         <updated>2023-04-17T17:52:51+02:00</updated>
             <summary>
                 <![CDATA[
-                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/9/tryhackme-banner.jpg" alt="" />
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/9/internal-walkthrough.png" alt="" />
                     In this article, we'll delve into the solution to the "Internal" TryHackMe Capture The Flag challenge. Our focus will be on the techniques used to&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
-                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/9/tryhackme-banner.jpg" class="type:primaryImage" alt="" /></p>
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/9/internal-walkthrough.png" class="type:primaryImage" alt="" /></p>
                 <p><!-- wp:paragraph --></p>
 <p>In this article, we'll delve into the solution to the "Internal" TryHackMe Capture The Flag challenge. Our focus will be on the techniques used to enumerate and exploit both a WordPress blog and a Jenkins installation.</p>
 <p><!-- /wp:paragraph --></p>
@@ -689,20 +695,20 @@
         </author>
         <link href="https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-opacity-write-up/"/>
         <id>https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-opacity-write-up/</id>
-        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/8/tryhackme-banner.jpg" medium="image" />
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/8/opacity-walkthrough.png" medium="image" />
             <category term="tryhackme"/>
             <category term="ctf"/>
 
         <updated>2023-04-11T07:10:48+02:00</updated>
             <summary>
                 <![CDATA[
-                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/8/tryhackme-banner.jpg" alt="" />
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/8/opacity-walkthrough.png" alt="" />
                     In this article, we're gonna dive into the solution for the "Opacity" challenge. Our goal is to bypass a file-upload filter and exploit Linux permissions&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
-                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/8/tryhackme-banner.jpg" class="type:primaryImage" alt="" /></p>
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/8/opacity-walkthrough.png" class="type:primaryImage" alt="" /></p>
                 <p><!-- wp:paragraph --></p>
 <p>In this article, we're gonna dive into the solution for the "Opacity" challenge. Our goal is to bypass a file-upload filter and exploit Linux permissions to get root access.</p>
 <p><!-- /wp:paragraph --></p>
@@ -818,20 +824,20 @@
         </author>
         <link href="https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-eavesdropper-write-up/"/>
         <id>https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-eavesdropper-write-up/</id>
-        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/tryhackme-banner.jpg" medium="image" />
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/eavesdropper-walkthrough.png" medium="image" />
             <category term="tryhackme"/>
             <category term="ctf"/>
 
         <updated>2023-04-09T14:56:16+02:00</updated>
             <summary>
                 <![CDATA[
-                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/tryhackme-banner.jpg" alt="" />
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/eavesdropper-walkthrough.png" alt="" />
                     In this article, we will explore the solution to the "Eavesdropper" challenge, which involves monitoring Linux processes with limited privileges and exploiting the $PATH variable&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
-                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/tryhackme-banner.jpg" class="type:primaryImage" alt="" /></p>
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/7/eavesdropper-walkthrough.png" class="type:primaryImage" alt="" /></p>
                 <p><!-- wp:paragraph --></p>
 <p>In this article, we will explore the solution to the "Eavesdropper" challenge, which involves monitoring Linux processes with limited privileges and exploiting the $PATH variable to gain root access on the target system.</p>
 <p><!-- /wp:paragraph --></p>
@@ -908,20 +914,20 @@
         </author>
         <link href="https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-md2pdf-write-up-2/"/>
         <id>https://e4ld3rs0n.github.io/bughunter-publii/tryhackme-md2pdf-write-up-2/</id>
-        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/tryhackme-banner.jpg" medium="image" />
+        <media:content url="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/md2pdf-walkthrough.png" medium="image" />
             <category term="tryhackme"/>
             <category term="ctf"/>
 
         <updated>2023-02-16T17:40:00+01:00</updated>
             <summary>
                 <![CDATA[
-                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/tryhackme-banner.jpg" alt="" />
+                        <img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/md2pdf-walkthrough.png" alt="" />
                     MD2PDF is a beginner-friendly TryHackMe room where we exploit a markdown-to-PDF converter vulnerability. Link: https://tryhackme.com/room/md2pdf Difficulty: Easy Enumeration To begin the enumeration process, I launched&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
-                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/tryhackme-banner.jpg" class="type:primaryImage" alt="" /></p>
+                    <p><img src="https://e4ld3rs0n.github.io/bughunter-publii/media/posts/3/md2pdf-walkthrough.png" class="type:primaryImage" alt="" /></p>
                 
   <p>
     MD2PDF is a beginner-friendly TryHackMe room where we exploit a markdown-to-PDF converter vulnerability.
